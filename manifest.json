@@ -1,6 +1,6 @@
 {
   "name": "蓝色星球",
-  "short_name": "蓝色星球探险",
+  "short_name": "星球探险",
   "description": "个人任务、记账、学习与习惯管理",
   "start_url": "./index.html",
   "display": "standalone",
