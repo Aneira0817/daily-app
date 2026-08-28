@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>我的每日管理系统</title>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--primary:#3b82f6;--soft:#eff6ff;--ok:#10b981;--bad:#ef4444;--warn:#f59e0b;--bottom:64px}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:200px;background:#fff;border-right:1px solid var(--border);padding:16px 12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;padding:8px 10px 18px}
+.brand i{width:36px;height:36px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:800}
+.side-nav a,.bottom a{display:flex;align-items:center;gap:8px;padding:12px;border-radius:12px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500}
+.side-nav a.active,.bottom a.active{background:var(--soft);color:var(--primary)}
+.main{padding:20px 16px calc(var(--bottom) + 28px);max-width:720px;margin:0 auto}
+h1{margin:0 0 4px;font-size:1.45rem}.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+.bottom{position:fixed;left:0;right:0;bottom:0;height:var(--bottom);background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:40}
+.bottom a{flex-direction:column;gap:2px;font-size:11px;padding:8px}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:640px){.grid4{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px}
+.stat .l{font-size:12px;color:var(--muted)}.stat .v{font-size:1.3rem;font-weight:700;margin-top:4px}
+.bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px}.bar>i{display:block;height:100%;background:var(--primary);width:0}
+.btn{border:none;border-radius:12px;padding:10px 14px;background:var(--primary);color:#fff;font-weight:600;font-size:14px}
+.btn.sm{padding:6px 10px;font-size:12px}.btn.block{width:100%}.btn.ok{background:var(--ok)}.btn.line{background:#fff;color:var(--text);border:1px solid var(--border)}.btn.ghost{background:transparent;color:var(--muted)}.btn.bad{background:var(--bad)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.item{border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px;background:#fff}
+.item.done{opacity:.6}.item.done .t{text-decoration:line-through}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted);margin-top:4px}
+.tag{padding:2px 8px;border-radius:8px;font-weight:600}.tag.urgent{background:#fef2f2;color:#dc2626}.tag.high{background:#fff7ed;color:#ea580c}.tag.medium{background:#fefce8;color:#ca8a04}.tag.low{background:#f1f5f9;color:#64748b}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.empty{text-align:center;color:var(--muted);padding:36px 12px}
+.field{margin-bottom:12px}.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--border);background:#f8fafc;border-radius:12px;padding:8px;min-width:64px;text-align:center;font-size:12px}.chip.on{border-color:#93c5fd;background:var(--soft);color:var(--primary);font-weight:600}
+.tabs{display:flex;gap:4px;background:#f1f5f9;padding:4px;border-radius:12px;margin-bottom:12px;overflow:auto}
+.tabs button{flex:1;border:none;background:transparent;padding:8px;border-radius:10px;color:var(--muted);font-weight:600;font-size:13px;white-space:nowrap}
+.tabs button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.mask[hidden]{display:none!important}.modal{width:100%;max-width:480px;max-height:90vh;overflow:auto;background:#fff;border-radius:20px 20px 0 0;padding-bottom:20px}
+.mhd{display:flex;justify-content:space-between;align-items:center;padding:16px;position:sticky;top:0;background:#fff}
+.mhd h3{margin:0;font-size:17px}.mbd{padding:0 16px}
+.x{border:none;background:#f1f5f9;width:32px;height:32px;border-radius:10px;font-size:18px}
+.fab{position:fixed;right:16px;bottom:calc(var(--bottom) + 16px);width:56px;height:56px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:28px;box-shadow:0 8px 24px rgba(59,130,246,.4);z-index:45}
+.plus{color:var(--ok);font-weight:700}.minus{font-weight:700}
+.habit{display:flex;justify-content:space-between;width:100%;border:1px solid var(--border);background:#f8fafc;border-radius:14px;padding:12px;margin-bottom:8px;text-align:left}
+.habit.on{background:#ecfdf5;border-color:#a7f3d0}
+.insight{display:flex;gap:10px;background:#f8fafc;border-radius:12px;padding:12px;margin-bottom:8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{text-align:center;font-size:11px;color:var(--muted);padding:4px 0}
+.cal .day{aspect-ratio:1;border:none;background:transparent;border-radius:12px;font-size:13px;position:relative}
+.cal .day.out{opacity:.35}.cal .day.today{background:var(--soft);color:var(--primary);font-weight:700}.cal .day.sel{background:var(--primary);color:#fff}
+.dot{position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:2px}
+.dot i{width:4px;height:4px;border-radius:50%;background:var(--primary)}.dot i.e{background:var(--warn)}
+.chart{display:flex;align-items:flex-end;gap:6px;height:120px}.chart .c{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.chart .b{width:100%;max-width:28px;background:var(--primary);border-radius:6px 6px 0 0;min-height:2px}.chart .l{font-size:10px;color:var(--muted)}
+@media(min-width:900px){.sidebar{display:block}.bottom,.fab{display:none}.main{margin-left:200px;padding:28px 24px}.mask{align-items:center;padding:16px}.modal{border-radius:20px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar"><div class="brand"><i>日</i><span>每日管理</span></div><nav class="side-nav" id="sideNav"></nav></aside>
+  <main class="main"><div id="page"></div></main>
+  <nav class="bottom" id="bottomNav"></nav>
+</div>
+<div class="mask" id="mask" hidden>
+  <div class="modal">
+    <div class="mhd"><h3 id="mtitle">标题</h3><button type="button" class="x" id="mclose">×</button></div>
+    <div class="mbd" id="mbody"></div>
+  </div>
+</div>
+<button type="button" class="fab" id="fab">+</button>
+<script>
+(function(){
+  var KEY="mdm-one-v1";
+  var CATS=[
+    {id:"c1",name:"餐饮",icon:"🍚",type:"expense"},{id:"c2",name:"交通",icon:"🚕",type:"expense"},
+    {id:"c3",name:"购物",icon:"🛍️",type:"expense"},{id:"c4",name:"学习",icon:"💻",type:"expense"},
+    {id:"c5",name:"娱乐",icon:"🎮",type:"expense"},{id:"c6",name:"日用品",icon:"🛒",type:"expense"},
+    {id:"c7",name:"其他",icon:"📦",type:"expense"},{id:"i1",name:"工资",icon:"💼",type:"income"},
+    {id:"i2",name:"奖金",icon:"🎁",type:"income"},{id:"i3",name:"其他收入",icon:"💵",type:"income"}
+  ];
+  var NAV=[{id:"home",l:"首页",i:"🏠"},{id:"tasks",l:"任务",i:"✅"},{id:"calendar",l:"日历",i:"📅"},{id:"money",l:"记账",i:"💰"},{id:"more",l:"我的",i:"👤"}];
+  var SIDE=[{id:"home",l:"首页",i:"🏠"},{id:"tasks",l:"任务",i:"✅"},{id:"calendar",l:"日历",i:"📅"},{id:"money",l:"记账",i:"💰"},{id:"study",l:"学习",i:"📚"},{id:"habits",l:"习惯",i:"🔥"},{id:"analytics",l:"分析",i:"📊"},{id:"settings",l:"设置",i:"⚙️"}];
+
+  function def(){return{tasks:[],txs:[],cats:CATS.slice(),projects:[],sessions:[],habits:[],records:[],fixed:[],budget:4000};}
+  function load(){try{var r=localStorage.getItem(KEY);return r?Object.assign(def(),JSON.parse(r)):def();}catch(e){return def();}}
+  function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+  var S=load(), route="home", cy=new Date().getFullYear(), cm=new Date().getMonth(), csel=today();
+
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+  function today(){return new Date().toISOString().slice(0,10);}
+  function money(n){return "¥"+(Number(n)||0).toLocaleString("zh-CN",{maximumFractionDigits:2});}
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function $(id){return document.getElementById(id);}  function pl(p){return {urgent:"🔴 紧急",high:"🟠 高",medium:"🟡 中",low:"⚪ 低"}[p]||p;}
+  function mins(m){m=Number(m)||0;if(m<60)return m+"分钟";var h=Math.floor(m/60),r=m%60;return r?h+"小时"+r+"分钟":h+"小时";}
+  function mp(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+  function sum(type,from,to){return S.txs.filter(function(x){return x.type===type&&x.date>=from&&x.date<=to;}).reduce(function(a,x){return a+Number(x.amount);},0);}
+  function tTasks(){var t=today();return S.tasks.filter(function(x){return x.due===t&&x.status!=="done"&&x.status!=="cancel";});}
+  function tDone(){var t=today();return S.tasks.filter(function(x){return x.due===t&&x.status==="done";}).length;}
+  function tStudy(){var t=today();return S.sessions.filter(function(s){return s.date===t;}).reduce(function(a,s){return a+Number(s.m);},0);}
+  function hDone(id){return S.records.some(function(r){return r.hid===id&&r.date===today();});}
+  function hStreak(id){var set={};S.records.forEach(function(r){if(r.hid===id)set[r.date]=1;});var n=0,c=new Date();if(!set[today()])c.setDate(c.getDate()-1);while(1){var k=c.toISOString().slice(0,10);if(set[k]){n++;c.setDate(c.getDate()-1);}else break;}return n;}
+
+  function openModal(title, html){
+    $("mtitle").textContent=title;
+    $("mbody").innerHTML=html;
+    $("mask").hidden=false;
+  }
+  function closeModal(){$("mask").hidden=true;$("mbody").innerHTML="";}
+  $("mclose").onclick=closeModal;
+  $("mask").onclick=function(e){if(e.target===this)closeModal();};
+
+  function nav(){
+    $("sideNav").innerHTML=SIDE.map(function(n){return '<a href="#'+n.id+'" data-r="'+n.id+'" class="'+(route===n.id?"active":"")+'"><span>'+n.i+"</span>"+n.l+"</a>";}).join("");
+    $("bottomNav").innerHTML=NAV.map(function(n){
+      var on=n.id==="more"?["study","habits","analytics","settings","more"].indexOf(route)>=0:route===n.id;
+      return '<a href="#'+n.id+'" data-r="'+n.id+'" class="'+(on?"active":"")+'"><span>'+n.i+"</span>"+n.l+"</a>";
+    }).join("");
+  }
+
+  function taskHtml(t){
+    var done=t.status==="done";
+    return '<div class="item '+(done?"done":"")+'"><div style="display:flex;gap:10px;align-items:flex-start">'+
+      '<button type="button" class="btn sm '+(done?"ok":"line")+'" data-tog="'+t.id+'">'+(done?"✓":"○")+"</button>"+
+      '<div style="flex:1"><div class="t" style="font-weight:600">'+esc(t.title)+'</div><div class="meta"><span class="tag '+t.pri+'">'+pl(t.pri)+"</span>"+
+      (t.time?"<span>⏰ "+esc(t.time)+"</span>":"")+"</div>"+
+      (!done?'<div class="row"><button type="button" class="btn sm ok" data-tog="'+t.id+'">完成</button><button type="button" class="btn sm line" data-pos="'+t.id+'">延期</button><button type="button" class="btn sm ghost" data-et="'+t.id+'">编辑</button></div>':"")+
+      "</div></div></div>";
+  }
+
+  function render(){
+    nav();
+    var p=$("page");
+    if(route==="home") home(p);
+    else if(route==="tasks") tasks(p);
+    else if(route==="money") moneyP(p);
+    else if(route==="calendar") cal(p);
+    else if(route==="study") study(p);
+    else if(route==="habits") habits(p);
+    else if(route==="analytics") analytics(p);
+    else if(route==="settings") settings(p);
+    else more(p);
+  }
+
+  function home(p){
+    var ts=tTasks(), done=tDone(), total=ts.length+done, rate=total?Math.round(done/total*100):0;
+    var exp=sum("expense",today(),today()), inc=sum("income",today(),today());
+    var m=mp(), mExp=sum("expense",m+"-01",today()), mInc=sum("income",m+"-01",today());
+    var used=S.budget?Math.min(100,Math.round(mExp/S.budget*100)):0;
+    var imp=ts.filter(function(t){return t.imp;})[0]||ts[0];
+    var d=new Date(); var dateStr=d.toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+    p.innerHTML='<div class="toolbar"><div><h1>'+esc(dateStr)+'</h1><p class="sub">'+(ts.length?"今天还有 "+ts.length+" 个任务":"今天任务已全部完成 🎉")+'</p></div><button class="btn sm" type="button" id="newT">+ 任务</button></div>'+
+      '<div class="grid4" style="margin-bottom:12px"><div class="stat"><div class="l">任务完成率</div><div class="v">'+rate+'%</div><div class="bar"><i style="width:'+rate+'%"></i></div></div>'+
+      '<div class="stat"><div class="l">今日学习</div><div class="v">'+mins(tStudy())+'</div></div>'+
+      '<div class="stat"><div class="l">今日花费</div><div class="v">'+money(exp)+'</div></div>'+
+      '<div class="stat"><div class="l">今日收入</div><div class="v" style="color:var(--ok)">'+money(inc)+'</div></div></div>'+      (imp?'<div class="card"><h3 style="margin:0 0 10px">⭐ 今日最重要</h3>'+taskHtml(imp)+'</div>':"")+
+      '<div class="toolbar"><h3 style="margin:0">今日任务</h3><a href="#tasks">全部</a></div>'+
+      (ts.length?ts.slice(0,5).map(taskHtml).join(""):'<div class="card empty">今天没有待完成任务 🎉</div>')+
+      '<div class="card"><h3 style="margin:0 0 10px">💰 本月财务</h3><div class="grid2" style="text-align:center"><div><div class="l">收入</div><div class="plus">'+money(mInc)+'</div></div><div><div class="l">支出</div><div class="minus">'+money(mExp)+'</div></div></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;margin:10px 0 4px"><span>预算</span><strong>'+used+'%</strong></div><div class="bar"><i style="width:'+used+'%"></i></div>'+
+      '<p class="sub" style="margin-top:8px">剩余 '+money(Math.max(0,S.budget-mExp))+' / 预算 '+money(S.budget)+'</p></div>';
+    $("newT").onclick=function(){formTask();};
+  }
+
+  function tasks(p){
+    var tab=p.dataset.tab||"today", t=today(), list;
+    if(tab==="today") list=S.tasks.filter(function(x){return x.due===t&&x.status!=="cancel";});
+    else if(tab==="todo") list=S.tasks.filter(function(x){return x.status!=="done"&&x.status!=="cancel";});
+    else if(tab==="done") list=S.tasks.filter(function(x){return x.status==="done";});
+    else list=S.tasks.slice();
+    p.innerHTML='<div class="toolbar"><div><h1>任务</h1><p class="sub">共 '+list.length+' 条</p></div><button class="btn sm" type="button" id="newT2">新建</button></div>'+
+      '<div class="tabs"><button type="button" data-tab="today" class="'+(tab==="today"?"active":"")+'">今日</button><button type="button" data-tab="todo" class="'+(tab==="todo"?"active":"")+'">待办</button><button type="button" data-tab="done" class="'+(tab==="done"?"active":"")+'">已完成</button><button type="button" data-tab="all" class="'+(tab==="all"?"active":"")+'">全部</button></div>'+
+      (list.length?list.map(taskHtml).join(""):'<div class="empty">暂无任务</div>');
+    p.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){p.dataset.tab=b.getAttribute("data-tab");tasks(p);};});
+    $("newT2").onclick=function(){formTask();};
+  }
+
+  function formTask(task){
+    var isEdit=!!task;
+    openModal(isEdit?"编辑任务":"新建任务",
+      '<form id="tf">'+
+      '<div class="field"><label>任务名称 *</label><input name="title" required placeholder="要做什么？" value="'+esc(task&&task.title||"")+'"></div>'+
+      '<div class="field"><label>描述</label><textarea name="desc" rows="2">'+esc(task&&task.desc||"")+'</textarea></div>'+
+      '<div class="field-row"><div class="field"><label>优先级</label><select name="pri">'+
+      ["medium","high","urgent","low"].map(function(x){return '<option value="'+x+'"'+(task&&task.pri===x?" selected":"")+'>'+pl(x)+'</option>';}).join("")+
+      '</select></div><div class="field"><label>日期</label><input type="date" name="due" value="'+(task&&task.due||today())+'"></div></div>'+
+      '<div class="field-row"><div class="field"><label>时间</label><input type="time" name="time" value="'+(task&&task.time||"")+'"></div>'+
+      '<div class="field"><label>预计分钟</label><input type="number" name="m" min="1" value="'+(task&&task.m||"")+'"></div></div>'+
+      '<div class="field"><label><input type="checkbox" name="imp"'+(task&&task.imp?" checked":"")+'> 今日最重要</label></div>'+
+      '<button class="btn block" type="submit">'+(isEdit?"保存":"创建")+'</button>'+
+      (isEdit?'<button class="btn block bad" type="button" id="tdel" style="margin-top:8px">删除</button>':"")+
+      '</form>');
+    $("tf").onsubmit=function(e){
+      e.preventDefault();
+      var fd=new FormData(e.target);
+      var data={title:String(fd.get("title")).trim(),desc:String(fd.get("desc")||"").trim(),pri:fd.get("pri"),due:fd.get("due")||today(),time:fd.get("time")||"",m:fd.get("m")?Number(fd.get("m")):null,imp:!!fd.get("imp")};
+      if(!data.title){alert("请填写任务名称");return;}
+      if(isEdit){Object.assign(task,data);}
+      else S.tasks.unshift({id:uid(),status:"todo",created:new Date().toISOString(),title:data.title,desc:data.desc,pri:data.pri,due:data.due,time:data.time,m:data.m,imp:data.imp});
+      save();closeModal();render();
+    };
+    var d=$("tdel");if(d)d.onclick=function(){if(!confirm("删除？"))return;S.tasks=S.tasks.filter(function(x){return x.id!==task.id;});save();closeModal();render();};
+  }
+
+  function moneyP(p){
+    var tab=p.dataset.tab||"list", t=today(), m=mp();    var te=sum("expense",t,t), ti=sum("income",t,t), me=sum("expense",m+"-01",t), mi=sum("income",m+"-01",t);
+    var used=S.budget?Math.min(100,Math.round(me/S.budget*100)):0;
+    var list=S.txs.slice().sort(function(a,b){return b.date.localeCompare(a.date);});
+    var html='<div class="toolbar"><div><h1>记账</h1><p class="sub">记录收支</p></div><div style="display:flex;gap:6px"><button class="btn sm line" type="button" id="ni">+ 收入</button><button class="btn sm" type="button" id="ne">+ 支出</button></div></div>'+
+      '<div class="grid2" style="margin-bottom:12px"><div class="stat"><div class="l">今日支出</div><div class="v">'+money(te)+'</div></div><div class="stat"><div class="l">今日收入</div><div class="v" style="color:var(--ok)">'+money(ti)+'</div></div></div>'+
+      '<div class="card"><div class="grid2" style="text-align:center"><div><div class="l">本月收入</div><div class="plus">'+money(mi)+'</div></div><div><div class="l">本月支出</div><div class="minus">'+money(me)+'</div></div></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;margin:10px 0 4px"><span>预算</span><strong>'+used+'%</strong></div><div class="bar"><i style="width:'+used+'%"></i></div></div>'+
+      '<div class="tabs"><button type="button" data-tab="list" class="'+(tab==="list"?"active":"")+'">明细</button><button type="button" data-tab="budget" class="'+(tab==="budget"?"active":"")+'">预算</button></div>';
+    if(tab==="list"){
+      html+=list.length?list.map(function(tx){
+        var c=S.cats.find(function(x){return x.id===tx.cid;});
+        return '<button type="button" class="item" style="width:100%;text-align:left" data-ex="'+tx.id+'"><div style="display:flex;justify-content:space-between"><div><div style="font-weight:600">'+(c?c.icon+" ":"")+esc(tx.note||(c&&c.name)||"记录")+'</div><div class="meta">'+tx.date+'</div></div><div class="'+(tx.type==="income"?"plus":"minus")+'">'+(tx.type==="income"?"+":"-")+money(tx.amount)+'</div></div></button>';
+      }).join(""):'<div class="empty">还没有记录</div>';
+    } else {
+      html+='<div class="card"><h3 style="margin:0 0 10px">月预算</h3><div class="field"><input type="number" id="bi" value="'+S.budget+'"></div><button class="btn" type="button" id="sb">保存</button></div>';
+    }
+    p.innerHTML=html;
+    p.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){p.dataset.tab=b.getAttribute("data-tab");moneyP(p);};});
+    $("ne").onclick=function(){formTx(null,"expense");};
+    $("ni").onclick=function(){formTx(null,"income");};
+    var sb=$("sb");if(sb)sb.onclick=function(){S.budget=Number($("bi").value)||0;save();render();};
+  }
+
+  function formTx(tx, type){
+    type=tx&&tx.type||type||"expense";
+    var cats=S.cats.filter(function(c){return c.type===type;});
+    openModal(tx?"编辑记录":(type==="expense"?"记一笔支出":"记一笔收入"),
+      '<form id="xf">'+
+      (!tx?'<div class="tabs" id="tt"><button type="button" data-ty="expense" class="'+(type==="expense"?"active":"")+'">支出</button><button type="button" data-ty="income" class="'+(type==="income"?"active":"")+'">收入</button></div>':"")+
+      '<div class="field"><label>金额 *</label><input name="amount" type="number" step="0.01" min="0.01" required value="'+(tx&&tx.amount||"")+'" placeholder="0.00"></div>'+
+      '<div class="field"><label>分类</label><div class="chips">'+cats.map(function(c){return '<button type="button" class="chip'+(tx&&tx.cid===c.id?" on":"")+'" data-c="'+c.id+'"><div>'+c.icon+'</div>'+esc(c.name)+'</button>';}).join("")+'</div><input type="hidden" name="cid" value="'+(tx&&tx.cid||cats[0]&&cats[0].id||"")+'"></div>'+
+      '<div class="field"><label>日期</label><input type="date" name="date" value="'+(tx&&tx.date||today())+'"></div>'+
+      '<div class="field"><label>备注</label><input name="note" value="'+esc(tx&&tx.note||"")+'"></div>'+
+      '<button class="btn block" type="submit">保存</button>'+
+      (tx?'<button class="btn block bad" type="button" id="xd" style="margin-top:8px">删除</button>':"")+
+      '</form>');
+    var cur=type;
+    var tt=$("tt");if(tt)tt.querySelectorAll("[data-ty]").forEach(function(b){b.onclick=function(){closeModal();formTx(null,b.getAttribute("data-ty"));};});
+    var hid=$("mbody").querySelector('[name="cid"]');
+    $("mbody").querySelectorAll("[data-c]").forEach(function(b){b.onclick=function(){$("mbody").querySelectorAll("[data-c]").forEach(function(x){x.classList.remove("on");});b.classList.add("on");hid.value=b.getAttribute("data-c");};});
+    $("xf").onsubmit=function(e){      e.preventDefault();
+      var fd=new FormData(e.target);
+      var data={amount:Number(fd.get("amount")),type:cur,cid:fd.get("cid"),date:fd.get("date")||today(),note:String(fd.get("note")||"").trim()};
+      if(!data.amount){alert("请输入金额");return;}
+      if(tx)Object.assign(tx,data);
+      else S.txs.unshift({id:uid(),created:new Date().toISOString(),amount:data.amount,type:data.type,cid:data.cid,date:data.date,note:data.note});
+      save();closeModal();render();
+    };
+    var xd=$("xd");if(xd)xd.onclick=function(){if(!confirm("删除？"))return;S.txs=S.txs.filter(function(x){return x.id!==tx.id;});save();closeModal();render();};
+  }
+
+  function cal(p){
+    var y=cy,m=cm,first=new Date(y,m,1),pad=(first.getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),pd=new Date(y,m,0).getDate();
+    var cells=[],i,d,dt;
+    for(i=pad-1;i>=0;i--){d=pd-i;dt=new Date(y,m-1,d);cells.push({date:dt.toISOString().slice(0,10),day:d,in:false});}
+    for(d=1;d<=dim;d++){dt=new Date(y,m,d);cells.push({date:dt.toISOString().slice(0,10),day:d,in:true});}
+    while(cells.length%7){var n=cells.length-pad-dim+1;dt=new Date(y,m+1,n);cells.push({date:dt.toISOString().slice(0,10),day:n,in:false});}
+    var td=today(), dayT=S.tasks.filter(function(t){return t.due===csel&&t.status!=="cancel";});
+    var dayE=S.txs.filter(function(t){return t.date===csel&&t.type==="expense";}).reduce(function(a,x){return a+Number(x.amount);},0);
+    p.innerHTML='<div class="toolbar"><div><h1>日历</h1><p class="sub">任务与花费</p></div><button class="btn sm" type="button" id="ct">+ 任务</button></div>'+
+      '<div class="card"><div class="toolbar"><button class="btn sm line" type="button" id="pm">‹</button><strong>'+y+"年"+(m+1)+'月</strong><button class="btn sm line" type="button" id="nm">›</button></div>'+
+      '<div class="cal">'+["一","二","三","四","五","六","日"].map(function(x){return '<div class="dow">'+x+"</div>";}).join("")+
+      cells.map(function(c){
+        var tc=S.tasks.some(function(t){return t.due===c.date&&t.status!=="cancel";});
+        var ec=S.txs.some(function(t){return t.date===c.date&&t.type==="expense";});
+        return '<button type="button" class="day '+(c.in?"":"out")+" "+(c.date===td?"today":"")+" "+(c.date===csel?"sel":"")+'" data-day="'+c.date+'">'+c.day+'<span class="dot">'+(tc?"<i></i>":"")+(ec?'<i class="e"></i>':"")+"</span></button>";
+      }).join("")+'</div></div>'+
+      '<div class="card"><h3 style="margin:0 0 10px">'+csel+'</h3><div class="grid2"><div class="stat"><div class="l">任务</div><div class="v">'+dayT.length+'</div></div><div class="stat"><div class="l">花费</div><div class="v">'+money(dayE)+'</div></div></div>'+(dayT.length?dayT.map(taskHtml).join(""):'<p class="sub">无任务</p>')+'</div>';
+    $("pm").onclick=function(){if(cm===0){cy--;cm=11;}else cm--;render();};
+    $("nm").onclick=function(){if(cm===11){cy++;cm=0;}else cm++;render();};
+    $("ct").onclick=function(){formTask();};
+  }
+
+  function study(p){
+    p.innerHTML='<div class="toolbar"><div><h1>学习</h1><p class="sub">今日 '+mins(tStudy())+'</p></div><button class="btn sm" type="button" id="np">新项目</button></div>'+
+      '<div class="card"><h3 style="margin:0 0 10px">记录时长</h3><div class="field-row"><div class="field"><input type="number" id="sm" min="1" placeholder="分钟"></div><div class="field"><select id="sp"><option value="">不关联</option>'+S.projects.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+'</option>';}).join("")+'</select></div></div><button class="btn sm" type="button" id="ss">记录</button></div>'+
+      (S.projects.length?S.projects.map(function(pr){
+        var pct=pr.total?Math.round((pr.done||0)/pr.total*100):0;
+        return '<div class="card"><div class="toolbar"><strong>'+esc(pr.name)+'</strong><button class="btn sm ghost" type="button" data-ep="'+pr.id+'">编辑</button></div>'+
+          (pr.total?'<div class="sub">'+(pr.done||0)+"/"+pr.total+" · "+pct+'%</div><div class="bar"><i style="width:'+pct+'%"></i></div>':"")+
+          '<div class="row"><button class="btn sm line" type="button" data-ic="'+pr.id+'">完成一节</button></div></div>';
+      }).join(""):'<div class="empty">还没有学习项目</div>');
+    $("np").onclick=function(){formProj();};
+    $("ss").onclick=function(){var m=Number($("sm").value);if(!m){alert("请输入分钟");return;}S.sessions.unshift({id:uid(),date:today(),m:m,pid:$("sp").value||null});save();render();};
+  }
+  function formProj(pr){    openModal(pr?"编辑项目":"新学习项目",'<form id="pf"><div class="field"><label>名称</label><input name="name" required value="'+esc(pr&&pr.name||"")+'"></div><div class="field-row"><div class="field"><label>总章节</label><input type="number" name="total" value="'+(pr&&pr.total||"")+'"></div><div class="field"><label>已完成</label><input type="number" name="done" value="'+(pr&&pr.done||0)+'"></div></div><button class="btn block" type="submit">保存</button>'+(pr?'<button class="btn block bad" type="button" id="pd" style="margin-top:8px">删除</button>':"")+'</form>');
+    $("pf").onsubmit=function(e){e.preventDefault();var fd=new FormData(e.target);var d={name:String(fd.get("name")).trim(),total:fd.get("total")?Number(fd.get("total")):null,done:Number(fd.get("done")||0)};if(pr)Object.assign(pr,d);else S.projects.push({id:uid(),name:d.name,total:d.total,done:d.done});save();closeModal();render();};
+    var pd=$("pd");if(pd)pd.onclick=function(){S.projects=S.projects.filter(function(x){return x.id!==pr.id;});save();closeModal();render();};
+  }
+
+  function habits(p){
+    var presets=[{n:"每天学习",i:"📚"},{n:"每天记账",i:"💰"},{n:"每天运动",i:"🏃"},{n:"每天阅读",i:"📖"}];
+    p.innerHTML='<div class="toolbar"><div><h1>习惯</h1><p class="sub">点一下打卡</p></div><button class="btn sm" type="button" id="nh">新习惯</button></div>'+
+      (S.habits.length?S.habits.map(function(h){var on=hDone(h.id);return '<button type="button" class="habit '+(on?"on":"")+'" data-ht="'+h.id+'"><span>'+esc(h.icon||"🔥")+" "+esc(h.name)+'</span><span>🔥 '+hStreak(h.id)+(on?" 已打卡":" 点我")+'</span></button><div style="text-align:right;margin:-4px 0 8px"><button class="btn sm ghost" type="button" data-dh="'+h.id+'">删除</button></div>';}).join(""):'<div class="empty">还没有习惯</div>')+
+      '<div class="card"><h3 style="margin:0 0 10px">快速添加</h3><div class="chips">'+presets.filter(function(x){return !S.habits.some(function(h){return h.name===x.n;});}).map(function(x){return '<button type="button" class="chip" data-pre="'+esc(x.n)+'|'+x.i+'"><div>'+x.i+'</div>'+x.n+"</button>";}).join("")+"</div></div>";
+    $("nh").onclick=function(){var n=prompt("习惯名称");if(!n)return;S.habits.push({id:uid(),name:n.trim(),icon:"🔥"});save();render();};
+  }
+
+  function analytics(p){
+    var days=[],i,d;for(i=6;i>=0;i--){d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+    var max=1;days.forEach(function(day){var v=sum("expense",day,day);if(v>max)max=v;});
+    var m=mp();
+    p.innerHTML='<h1>分析</h1><p class="sub">本机真实数据</p><div class="grid2"><div class="stat"><div class="l">本月收入</div><div class="v" style="color:var(--ok)">'+money(sum("income",m+"-01",today()))+'</div></div><div class="stat"><div class="l">本月支出</div><div class="v">'+money(sum("expense",m+"-01",today()))+'</div></div></div>'+
+      '<div class="card"><h3 style="margin:0 0 10px">近7天支出</h3><div class="chart">'+days.map(function(day){var v=sum("expense",day,day),h=Math.round(v/max*100);return '<div class="c"><div class="b" style="height:'+h+'%"></div><div class="l">'+day.slice(5)+'</div></div>';}).join("")+"</div></div>";
+  }
+
+  function more(p){
+    p.innerHTML='<h1>我的</h1><p class="sub">更多入口</p><div class="card">'+[["study","📚 学习"],["habits","🔥 习惯"],["analytics","📊 分析"],["settings","⚙️ 设置"]].map(function(x){return '<a href="#'+x[0]+'" class="item" style="display:block;margin-bottom:8px;text-decoration:none;color:inherit">'+x[1]+"</a>";}).join("")+"</div>";
+  }
+
+  function settings(p){
+    p.innerHTML='<h1>设置</h1><p class="sub">数据存在本机浏览器</p><div class="card"><h3 style="margin:0 0 10px">月预算</h3><div class="field"><input type="number" id="bs" value="'+S.budget+'"></div><button class="btn" type="button" id="sbs">保存</button></div>'+
+      '<div class="card"><h3 style="margin:0 0 10px">备份</h3><button class="btn" type="button" id="ex">导出 JSON</button><p class="sub" style="margin-top:8px">任务 '+S.tasks.length+" · 记账 "+S.txs.length+'</p></div>'+
+      '<div class="card"><h3 style="margin:0 0 10px;color:var(--bad)">危险</h3><button class="btn bad" type="button" id="cl">清除全部数据</button></div>';
+    $("sbs").onclick=function(){S.budget=Number($("bs").value)||0;save();alert("已保存");};
+    $("ex").onclick=function(){var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="backup.json";a.click();};
+    $("cl").onclick=function(){if(!confirm("确定清除？"))return;S=def();save();render();};
+  }
+
+  document.addEventListener("click",function(e){    var t=e.target.closest("[data-r],[data-tog],[data-pos],[data-et],[data-ex],[data-ht],[data-dh],[data-pre],[data-day],[data-ep],[data-ic]");
+    if(!t)return;
+    if(t.getAttribute("data-r")){e.preventDefault();location.hash=t.getAttribute("data-r");return;}
+    if(t.getAttribute("data-tog")){var task=S.tasks.find(function(x){return x.id===t.getAttribute("data-tog");});if(!task)return;task.status=task.status==="done"?"todo":"done";save();render();return;}
+    if(t.getAttribute("data-pos")){var t2=S.tasks.find(function(x){return x.id===t.getAttribute("data-pos");});if(!t2)return;var dd=new Date((t2.due||today())+"T12:00:00");dd.setDate(dd.getDate()+1);t2.due=dd.toISOString().slice(0,10);t2.status="post";save();render();return;}
+    if(t.getAttribute("data-et")){var t3=S.tasks.find(function(x){return x.id===t.getAttribute("data-et");});if(t3)formTask(t3);return;}
+    if(t.getAttribute("data-ex")){var tx=S.txs.find(function(x){return x.id===t.getAttribute("data-ex");});if(tx)formTx(tx);return;}
+    if(t.getAttribute("data-ht")){var id=t.getAttribute("data-ht"),day=today(),ex=S.records.find(function(r){return r.hid===id&&r.date===day;});if(ex)S.records=S.records.filter(function(r){return r.id!==ex.id;});else S.records.push({id:uid(),hid:id,date:day});save();render();return;}
+    if(t.getAttribute("data-dh")){if(!confirm("删除习惯？"))return;var hid=t.getAttribute("data-dh");S.habits=S.habits.filter(function(h){return h.id!==hid;});S.records=S.records.filter(function(r){return r.hid!==hid;});save();render();return;}
+    if(t.getAttribute("data-pre")){var parts=t.getAttribute("data-pre").split("|");S.habits.push({id:uid(),name:parts[0],icon:parts[1]});save();render();return;}
+    if(t.getAttribute("data-day")){csel=t.getAttribute("data-day");render();return;}
+    if(t.getAttribute("data-ep")){var pr=S.projects.find(function(x){return x.id===t.getAttribute("data-ep");});if(pr)formProj(pr);return;}
+    if(t.getAttribute("data-ic")){var pr2=S.projects.find(function(x){return x.id===t.getAttribute("data-ic");});if(pr2){pr2.done=(pr2.done||0)+1;save();render();}return;}
+  });
+
+  $("fab").onclick=function(){formTask();};
+  window.addEventListener("hashchange",function(){route=(location.hash||"#home").slice(1)||"home";render();});
+  route=(location.hash||"#home").slice(1)||"home";
+  render();
+})();
+</script>
+</body>
+</html>
