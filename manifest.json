@@ -1,6 +1,6 @@
 {
-  "name": "我的每日管理系统",
-  "short_name": "每日管理",
+  "name": "蓝色星球",
+  "short_name": "蓝色星球探险",
   "description": "个人任务、记账、学习与习惯管理",
   "start_url": "./index.html",
   "display": "standalone",
